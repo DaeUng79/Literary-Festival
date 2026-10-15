@@ -4,3 +4,4 @@
 @media(prefers-reduced-motion:no-preference){button{transition:background-color .15s,border-color .15s}button:hover{filter:brightness(.97)}}
 
 button{word-break:keep-all}
+.festival-date{white-space:nowrap;flex-shrink:0}@media(max-width:640px){.site-header{padding-left:14px;padding-right:14px}.festival-date{max-width:none;font-size:9px;letter-spacing:-.3px;line-height:1}}

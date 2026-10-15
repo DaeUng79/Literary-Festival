@@ -7,14 +7,13 @@ const save = (key, value) => { try { localStorage.setItem(key, value); } catch {
 const state = { view: 'now', guide: '17-prepare', mode: read('festival-weather') === 'rain' ? 'rain' : 'normal', query: '', preview: null };
 let data;
 let lastMinute = '';
-const guideItems = [['17-prepare','17일 준비·분장'],['17-detail','17일 상세일정'],['18-prepare','18일 준비·분장'],['18-detail','18일 상세일정'],['18-rain','18일 우천일정']];
+const guideItems = [['17-prepare','17일 업무분장'],['17-detail','17일 상세일정'],['18-prepare','18일 업무분장'],['18-detail','18일 상세일정'],['18-rain','18일 우천일정']];
 const labels = {active:'진행 중', starting:'시작 알림', soon:'30분 내 시작', upcoming:'예정', ended:'시간 종료', started:'시작 시각 지남', 'past-day':'지난 날짜', 'future-day':'예정', untimed:'시간 확인 필요'};
 const now = () => state.preview ? {...state.preview, second:'00'} : seoulNow();
 const dayLabel = date => date === '2026-10-17' ? '10월 17일 (토)' : '10월 18일 (일)';
 const nextDate = clock => data.meta.dates.find(d => d >= clock.date) || data.meta.dates.at(-1);
 const empty = (title, body = '') => `<div class="empty"><strong>${escape(title)}</strong>${escape(body)}</div>`;
 const title = (text, count, sub = '') => `<div class="section-title"><h2>${text}${count === undefined ? '' : `<span class="count">${count}</span>`}</h2><span class="sub">${sub}</span></div>`;
-const source = item => `<details class="source"><summary>원본 위치</summary><p>${escape(item.source.sheet)}${item.source.rows.length ? ` · ${item.source.rows.join(', ')}행` : ''}</p></details>`;
 const note = text => text ? `<div class="notes">${escape(text)}</div>` : '';
 const location = text => text ? `<div class="location">↳ ${escape(text)}</div>` : '';
 
@@ -24,7 +23,7 @@ function eventCard(item, clock) {
     <div class="card-head"><span class="time">${escape(item.start)}${item.end ? ` — ${escape(item.end)}` : ' 시작'}</span><span class="badge ${phase}">${labels[phase]}</span></div>
     <div class="card-content">${location(item.location)}<h3>${escape(item.title)}</h3>
     <div class="staff"><span class="staff-label">담당</span>${escape(!item.staff || item.staff === '-' ? '원본 미기재 · 현장 확인' : item.staff)}</div>
-    ${note(item.notes)}${!item.end ? '<div class="point-note">종료 시각 미기재 · 시작 알림은 15분간 표시</div>' : ''}${source(item)}</div></article>`;
+    ${note(item.notes)}${!item.end ? '<div class="point-note">종료 시각 미기재 · 시작 알림은 15분간 표시</div>' : ''}</div></article>`;
 }
 
 function dutyCard(item, clock, currentOnly = false) {
@@ -32,7 +31,7 @@ function dutyCard(item, clock, currentOnly = false) {
   const shifts = currentOnly ? current : item.shifts;
   return `<article class="card"><div class="category">${escape(item.category)}</div>${location(item.location)}
     <h3>${escape(item.title)}</h3><div class="shift-list">${shifts.map(shift => `<div class="shift ${current.includes(shift) ? 'current' : ''}"><span class="staff-label">${shift.label} ${shift.start}–${shift.end}${current.includes(shift) ? ' · 현재 근무' : ''}</span>${escape(shift.staff || '원본 미기재 · 현장 확인')}</div>`).join('')}</div>
-    ${item.detail !== item.title ? note(item.detail.slice(item.title.length).trim()) : ''}${note(item.notes)}${source(item)}</article>`;
+    ${item.detail !== item.title ? note(item.detail.slice(item.title.length).trim()) : ''}${note(item.notes)}</article>`;
 }
 
 function prepBlock(day) {
@@ -87,7 +86,7 @@ function renderGuide(clock) {
       ${title(rain ? '우천 상세일정' : '시간순 상세일정', events.length)}<div class="timeline">${events.map(e => eventCard(e,clock)).join('') || empty('검색 결과가 없습니다','다른 이름이나 업무명으로 검색해주세요.')}</div>
       ${rain ? `${title('우천 장소 · 전체 업무분장', assignments.length)}<div class="grid">${assignments.map(a=>dutyCard(a,clock)).join('')}</div>` : ''}`;
   }
-  return `${nav}<section class="intro"><div class="eyebrow">${rain ? '우천 시 대체 운영' : '현장 운영 안내'}</div><h2 style="margin-top:10px">${dayLabel(date)} ${prepare ? '준비·분장' : rain ? '우천일정' : '상세일정'}</h2><p>${prepare ? '출근부터 물품 준비, 오전·오후 담당 업무까지.' : rain ? '장소가 달라져도, 업무를 놓치지 않도록.' : '시간에 맞춰 업무와 담당자를 확인하세요.'}</p></section>${content}`;
+  return `${nav}<section class="intro"><div class="eyebrow">${rain ? '우천 시 대체 운영' : '현장 운영 안내'}</div><h2 style="margin-top:10px">${dayLabel(date)} ${prepare ? '업무분장' : rain ? '우천일정' : '상세일정'}</h2><p>${prepare ? '출근부터 물품 준비, 오전·오후 담당 업무까지.' : rain ? '장소가 달라져도, 업무를 놓치지 않도록.' : '시간에 맞춰 업무와 담당자를 확인하세요.'}</p></section>${content}`;
 }
 
 function renderCommute() {
