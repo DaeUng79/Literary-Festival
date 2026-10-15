@@ -12,7 +12,6 @@ const labels = {active:'진행 중', starting:'시작 알림', soon:'30분 내 �
 const now = () => state.preview ? {...state.preview, second:'00'} : seoulNow();
 const dayLabel = date => date === '2026-10-17' ? '10월 17일 (토)' : '10월 18일 (일)';
 const nextDate = clock => data.meta.dates.find(d => d >= clock.date) || data.meta.dates.at(-1);
-const daysUntilStart = clock => Math.max(0, Math.round((Date.parse(`${data.meta.dates[0]}T00:00:00Z`) - Date.parse(`${clock.date}T00:00:00Z`)) / 86400000));
 const empty = (title, body = '') => `<div class="empty"><strong>${escape(title)}</strong>${escape(body)}</div>`;
 const title = (text, count, sub = '') => `<div class="section-title"><h2>${text}${count === undefined ? '' : `<span class="count">${count}</span>`}</h2><span class="sub">${sub}</span></div>`;
 const note = text => text ? `<div class="notes">${escape(text)}</div>` : '';
@@ -75,13 +74,13 @@ function renderNow(clock) {
   const during = data.meta.dates.includes(clock.date);
   const before = clock.date < data.meta.dates[0];
   let heading = before ? '축제를 준비하고 있어요' : !during ? '양일 일정이 마무리되었습니다' : currentEvents.length ? `현재 상세일정 ${currentEvents.length}건` : duties.length ? `현재 업무분장 ${duties.length}건` : '다음 일정을 확인하세요';
-  let description = before ? `${dayLabel(data.meta.dates[0])} 행사까지 D-${daysUntilStart(clock)}입니다. 업무분장과 출퇴근 안내를 미리 확인하세요.` : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · 현재 상세일정과 근무 중인 세부분장을 표시합니다.`;
+  let description = before ? `${dayLabel(data.meta.dates[0])} 첫 일정부터 시간순으로 안내합니다.` : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · 현재 상세일정과 근무 중인 세부분장을 표시합니다.`;
   return `${modeControl(date)}${mode === 'rain' ? '<div class="notice">☂ <strong>우천 일정 보기 중</strong> · 우천 시트의 대체 장소와 업무만 표시합니다. 우천 전환 여부는 현장 공지를 확인하세요. 이 선택은 다른 직원의 화면에 적용되지 않습니다.</div>' : ''}
     <section class="now-summary"><div class="eyebrow"><span class="live-dot"></span>${state.preview ? '시간 미리보기' : '현재 시각 기준'}</div><h2>${heading}</h2><p>${description}</p></section>
+    ${during && currentEvents.length ? `${title('현재 상세일정', currentEvents.length)}<div class="grid">${currentEvents.map(e => eventCard(e,clock,true)).join('')}</div>` : ''}
+    ${displayNext.length ? `${title(before ? '시간대별 일정' : '다음 일정', displayNext.length, dayLabel(date))}<div class="grid">${displayNext.map(e => eventCard(e, clock)).join('')}</div>` : ''}
     ${before ? quickLinks(true) : ''}
     ${during && minutes(clock.time) < 600 ? `<div style="margin-top:20px">${prepBlock(clock.date.slice(-2))}</div>` : ''}
-    ${during && currentEvents.length ? `${title('현재 상세일정', currentEvents.length)}<div class="grid">${currentEvents.map(e => eventCard(e,clock,true)).join('')}</div>` : ''}
-    ${displayNext.length ? `${title(before ? '행사 첫 일정' : '다음 일정', displayNext.length, dayLabel(date))}<div class="grid">${displayNext.map(e => eventCard(e, clock)).join('')}</div>` : ''}
     ${during && duties.length ? `${title('현재 시간대 업무분장', duties.length, '카테고리를 선택해 확인')} ${currentDutyCategories(duties,clock)}` : ''}
     ${during && !duties.length && !currentEvents.length ? `${title('현재 업무', 0, '현재 배정된 업무가 없습니다')}<div class="grid">${empty(state.query ? '검색한 업무가 현재 시간에 없습니다' : '현재 시간에 배정된 업무가 없습니다', displayNext.length ? `다음 일정은 ${displayNext[0].start} · ${displayNext[0].title}` : '날짜별 안내에서 오늘 일정을 확인하세요.')}</div>` : ''}
     ${before ? '' : quickLinks()}`;
