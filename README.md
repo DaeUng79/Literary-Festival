@@ -23,9 +23,9 @@ python3 -m http.server 8766 --directory dist
 
 ## GitHub Pages
 
-사이트: https://daeung79.github.io/Literary-Festival/
+배포 주소: https://daeung79.github.io/Literary-Festival/ (Pages 설정 및 첫 배포 완료 후 접속 가능)
 
-GitHub Actions가 `main`에 반영된 변경을 검증한 뒤 `dist`만 배포합니다. Pages가 아직 켜져 있지 않으면 워크플로가 Actions 배포를 활성화합니다. 이후 소스를 수정해 `main`에 푸시하면 자동 재배포됩니다. 엑셀 원본은 저장소에 올리지 않습니다.
+최초 설정은 저장소 관리자가 Settings → Pages → Build and deployment → Source에서 **GitHub Actions**를 선택해야 합니다. 이후 GitHub Actions가 `main` 변경을 검증한 뒤 `dist`만 배포하고, 소스를 `main`에 푸시할 때마다 자동 재배포합니다. 엑셀 원본은 저장소에 올리지 않습니다.
 
 ## 일정 변경
 
