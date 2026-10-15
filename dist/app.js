@@ -31,7 +31,7 @@ function previewControls(clock) {
   }).join('');
   return `<section class="preview-controls preview-tab-controls" aria-label="시간 미리보기 설정">
       <label>날짜<select id="preview-day">${data.meta.dates.map(date => `<option value="${date}" ${date === selectedDate ? 'selected' : ''}>${dayLabel(date)}</option>`).join('')}</select></label>
-      <label>시각<select id="preview-time" required>${hourOptions}</select></label>
+      <label>시각<select id="preview-time" required style="width:50%">${hourOptions}</select></label>
       <button id="preview-apply" class="primary">미리보기 적용</button>
     </section>`;
 }
