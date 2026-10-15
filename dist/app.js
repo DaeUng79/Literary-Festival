@@ -12,6 +12,7 @@ const labels = {active:'진행 중', starting:'시작 알림', soon:'30분 내 �
 const now = () => state.preview ? {...state.preview, second:'00'} : seoulNow();
 const dayLabel = date => date === '2026-10-17' ? '10월 17일 (토)' : '10월 18일 (일)';
 const nextDate = clock => data.meta.dates.find(d => d >= clock.date) || data.meta.dates.at(-1);
+const daysUntilStart = clock => Math.max(0, Math.round((Date.parse(`${data.meta.dates[0]}T00:00:00Z`) - Date.parse(`${clock.date}T00:00:00Z`)) / 86400000));
 const empty = (title, body = '') => `<div class="empty"><strong>${escape(title)}</strong>${escape(body)}</div>`;
 const title = (text, count, sub = '') => `<div class="section-title"><h2>${text}${count === undefined ? '' : `<span class="count">${count}</span>`}</h2><span class="sub">${sub}</span></div>`;
 const note = text => text ? `<div class="notes">${escape(text)}</div>` : '';
@@ -42,8 +43,24 @@ function modeControl(date) {
   return `<div class="mode-row"><div class="mode-caption"><strong>${dayLabel(date)} · ${state.mode === 'rain' && date.endsWith('18') ? '우천 운영' : '일반 운영'}</strong>${date.endsWith('18') ? '내 화면의 일정 선택 · 현장 공지에 따라 전환' : '17일은 일반 일정만 제공됩니다'}</div>${date.endsWith('18') ? `<div class="segmented" role="group" aria-label="18일 일정 종류"><button data-mode="normal" aria-pressed="${state.mode === 'normal'}" class="${state.mode === 'normal' ? 'selected' : ''}">일반</button><button data-mode="rain" aria-pressed="${state.mode === 'rain'}" class="rain ${state.mode === 'rain' ? 'selected' : ''}">☂ 우천</button></div>` : ''}</div>`;
 }
 
-function quickLinks() {
-  return `${title('날짜별로 찾아보기')}<div class="quick-grid">${guideItems.map(([key, text]) => `<button data-guide="${key}"><span>${text}</span><span aria-hidden="true">↗</span></button>`).join('')}<button data-view="commute"><span>출퇴근 안내</span><span aria-hidden="true">↗</span></button></div>`;
+function quickLinks(preEvent = false) {
+  const links = preEvent
+    ? [['17-prepare','17일 업무분장'],['18-prepare','18일 업무분장'],['commute','출퇴근 안내'],['18-rain','18일 우천일정']]
+    : [...guideItems, ['commute','출퇴근 안내']];
+  return `${title(preEvent ? '준비할 때 자주 찾는 안내' : '날짜별로 찾아보기')}<div class="quick-grid ${preEvent ? 'quick-grid-priority' : ''}">${links.map(([key, text]) => `<button ${key === 'commute' ? 'data-view="commute"' : `data-guide="${key}"`}><span>${text}</span><span aria-hidden="true">↗</span></button>`).join('')}</div>`;
+}
+
+function managerSummary(clock) {
+  const firstDate = data.meta.dates[0];
+  const isBefore = clock.date < firstDate;
+  const isEventDay = data.meta.dates.includes(clock.date);
+  const phase = isBefore ? `행사까지 D-${daysUntilStart(clock)}` : isEventDay ? `${dayLabel(clock.date)} 운영` : '행사 종료';
+  const rainCount = data.schedules.filter(item => item.mode === 'rain').length;
+  const confirmations = data.meta.notices.filter(text => /담당자 확인이 필요합니다|안내 시 확인하세요/.test(text));
+  return `<details class="manager-overview"><summary><strong>관리자 한눈에</strong><span>${phase} · 분장 ${data.assignments.length}건 · 안내 ${data.schedules.length}건 · 자료 ${data.meta.updatedAt.replace(/-/g,'.')}</span></summary>
+    <div class="manager-stats"><div><strong>${data.assignments.length}</strong><span>업무분장 항목</span></div><div><strong>${data.schedules.length}</strong><span>시간·출근 안내</span></div><div><strong>${rainCount}</strong><span>18일 우천·출근 안내</span></div></div>
+    <details class="manager-confirmations"><summary>현장 확인 요청 ${confirmations.length}건</summary><ul>${confirmations.map(text => `<li>${escape(text)}</li>`).join('')}</ul></details>
+  </details>`;
 }
 
 function renderNow(clock) {
@@ -59,14 +76,15 @@ function renderNow(clock) {
   const during = data.meta.dates.includes(clock.date);
   const before = clock.date < data.meta.dates[0];
   let heading = before ? '축제를 준비하고 있어요' : !during ? '양일 일정이 마무리되었습니다' : live.length ? `지금 확인할 업무 ${live.length}건` : '현재 시간의 업무를 확인하세요';
-  let description = before ? '10월 17일(토)부터 운영합니다. 준비사항을 확인하거나 시간 미리보기를 사용하세요.' : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · ${mode === 'rain' ? '우천 일정' : '일반 일정'} · 시간에 맞춰 자동으로 바뀝니다.`;
+  let description = before ? `${dayLabel(data.meta.dates[0])} 행사까지 D-${daysUntilStart(clock)}입니다. 업무분장과 출퇴근 안내를 미리 확인하세요.` : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · ${mode === 'rain' ? '우천 일정' : '일반 일정'} · 시간에 맞춰 자동으로 바뀝니다.`;
   return `${modeControl(date)}${mode === 'rain' ? '<div class="notice">☂ <strong>우천 일정 보기 중</strong> · 우천 시트의 대체 장소와 업무만 표시합니다. 우천 전환 여부는 현장 공지를 확인하세요. 이 선택은 다른 직원의 화면에 적용되지 않습니다.</div>' : ''}
     <section class="now-summary"><div class="eyebrow"><span class="live-dot"></span>${state.preview ? '시간 미리보기' : '현재 시각 기준'}</div><h2>${heading}</h2><p>${description}</p></section>
+    ${managerSummary(clock)}${before ? quickLinks(true) : ''}
     ${during && minutes(clock.time) < 600 ? `<div style="margin-top:20px">${prepBlock(clock.date.slice(-2))}</div>` : ''}
-    ${title('지금 업무', live.length, '진행 중 · 시작 알림')}<div class="grid">${live.length ? live.map(e => eventCard(e, clock)).join('') : empty(state.query ? '검색에 맞는 현재 업무가 없습니다' : '진행 중인 상세일정이 없습니다', '아래 준비사항·교대 업무와 다음 일정을 함께 확인해주세요.')}</div>
-    ${displayNext.length ? `${title(soon.length ? '곧 시작해요' : '다음 일정', displayNext.length, dayLabel(date))}<div class="grid">${displayNext.map(e => eventCard(e, clock)).join('')}</div>` : ''}
-    ${title('현재 교대 업무', duties.length, '13–14시는 오전·오후 함께 표시')}<div class="grid">${duties.length ? duties.map(e => dutyCard(e, clock, true)).join('') : empty('현재 표시할 교대 업무가 없습니다', '근무분장 시간은 오전 10–14시, 오후 13–17시입니다.')}</div>
-    ${quickLinks()}`;
+    ${during ? `${title('지금 업무', live.length, '진행 중 · 시작 알림')}<div class="grid">${live.length ? live.map(e => eventCard(e, clock)).join('') : empty(state.query ? '검색에 맞는 현재 업무가 없습니다' : '현재 진행 중인 상세일정이 없습니다', state.query ? '이름 또는 업무명을 다시 확인해주세요.' : '다음 일정과 교대 업무를 확인해주세요.')}</div>` : ''}
+    ${displayNext.length ? `${title(before ? '행사 첫 일정' : soon.length ? '곧 시작해요' : '다음 일정', displayNext.length, dayLabel(date))}<div class="grid">${displayNext.map(e => eventCard(e, clock)).join('')}</div>` : ''}
+    ${during ? `${title('현재 교대 업무', duties.length, '13–14시는 오전·오후 함께 표시')}<div class="grid">${duties.length ? duties.map(e => dutyCard(e, clock, true)).join('') : empty('현재 표시할 교대 업무가 없습니다', '근무분장 시간은 오전 10–14시, 오후 13–17시입니다.')}</div>` : ''}
+    ${before ? '' : quickLinks()}`;
 }
 
 function renderGuide(clock) {
