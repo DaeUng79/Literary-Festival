@@ -42,7 +42,7 @@ function eventCard(item, clock, current = false) {
     <div class="card-head"><span class="time">${escape(item.start)}${item.end ? ` — ${escape(item.end)}` : ' 시작'}</span><span class="badge ${phase}">${labels[phase]}</span></div>
     <div class="card-content">${location(item.location)}<h3>${escape(item.title)}</h3>
     <div class="staff"><span class="staff-label">담당</span>${escape(!item.staff || item.staff === '-' ? '원본 미기재 · 현장 확인' : item.staff)}</div>
-    ${note(item.notes)}${!current && !item.end ? '<div class="point-note">종료 시각 미기재 · 시작 알림은 15분간 표시</div>' : ''}</div></article>`;
+    ${note(item.notes)}</div></article>`;
 }
 
 function dutyCard(item, clock, currentOnly = false, showCategory = true) {
