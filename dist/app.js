@@ -70,7 +70,9 @@ function prepBlock(day) {
 }
 
 function modeControl(date, mode) {
-  return `<div class="mode-row"><div class="mode-caption"><strong>${dayLabel(date)}${mode === 'rain' && date.endsWith('18') ? ' · 우천 운영' : ''}</strong>${date.endsWith('18') ? '내 화면의 일정 선택 · 현장 공지에 따라 전환' : ''}</div>${date.endsWith('18') ? `<div class="segmented" role="group" aria-label="18일 일정 종류"><button data-mode="normal" aria-pressed="${mode === 'normal'}" class="${mode === 'normal' ? 'selected' : ''}">일반</button><button data-mode="rain" aria-pressed="${mode === 'rain'}" class="rain ${mode === 'rain' ? 'selected' : ''}">☂ 우천</button></div>` : ''}</div>`;
+  if (date.endsWith('17')) return '<div class="mode-row mode-row-spacer" aria-hidden="true"></div>';
+  const modeLabel = mode === 'rain' ? ' · 우천 운영' : '';
+  return `<div class="mode-row"><div class="mode-caption"><strong>${dayLabel(date)}${modeLabel}</strong>내 화면의 일정 선택 · 현장 공지에 따라 전환</div><div class="segmented" role="group" aria-label="18일 일정 종류"><button data-mode="normal" aria-pressed="${mode === 'normal'}" class="${mode === 'normal' ? 'selected' : ''}">일반</button><button data-mode="rain" aria-pressed="${mode === 'rain'}" class="rain ${mode === 'rain' ? 'selected' : ''}">☂ 우천</button></div></div>`;
 }
 
 function quickLinks(preEvent = false) {
