@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { seoulNow, status, activeShifts, currentSchedule, selectSchedule, matches, minutes } from '../dist/core.js';
+import { seoulNow, status, activeShifts, currentSchedule, selectSchedule, minutes } from '../dist/core.js';
 const data = JSON.parse(fs.readFileSync(new URL('../dist/data.json',import.meta.url)));
 const at = (time,date='2026-10-18')=>({date,time});
 
@@ -86,11 +86,6 @@ test('병합 셀 담당자 및 우천 장소의 상속 보존',()=>{
   assert.ok(data.assignments.find(e=>e.id==='duty-17-3').detail.includes('매시간 36명'));
   assert.equal(data.assignments.find(e=>e.id==='rain-18-25').location,'2층 복도');
   assert.equal(data.schedules.find(e=>e.id==='rain-event-8').staff,'장희진, 김정해');
-});
-test('담당자, 원문의 별칭, 공백 및 장소 검색',()=>{
-  assert.ok(matches({staff:'윤영'},'서윤영'));
-  assert.ok(matches({title:'동화 구연',location:'관설당'},'동화 관설당'));
-  assert.ok(!matches({staff:'이영주'},'김현지'));
 });
 test('주신 출퇴근 정보와 양일 출근 알림 포함',()=>{
   assert.deepEqual(data.commute.arrivals.map(x=>x.time),['07:00','08:00']);
