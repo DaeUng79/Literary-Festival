@@ -50,19 +50,6 @@ function quickLinks(preEvent = false) {
   return `${title(preEvent ? '준비할 때 자주 찾는 안내' : '날짜별로 찾아보기')}<div class="quick-grid ${preEvent ? 'quick-grid-priority' : ''}">${links.map(([key, text]) => `<button ${key === 'commute' ? 'data-view="commute"' : `data-guide="${key}"`}><span>${text}</span><span aria-hidden="true">↗</span></button>`).join('')}</div>`;
 }
 
-function managerSummary(clock) {
-  const firstDate = data.meta.dates[0];
-  const isBefore = clock.date < firstDate;
-  const isEventDay = data.meta.dates.includes(clock.date);
-  const phase = isBefore ? `행사까지 D-${daysUntilStart(clock)}` : isEventDay ? `${dayLabel(clock.date)} 운영` : '행사 종료';
-  const rainCount = data.schedules.filter(item => item.mode === 'rain').length;
-  const confirmations = data.meta.notices.filter(text => /담당자 확인이 필요합니다|안내 시 확인하세요/.test(text));
-  return `<details class="manager-overview"><summary><strong>관리자 한눈에</strong><span>${phase} · 분장 ${data.assignments.length}건 · 안내 ${data.schedules.length}건 · 자료 ${data.meta.updatedAt.replace(/-/g,'.')}</span></summary>
-    <div class="manager-stats"><div><strong>${data.assignments.length}</strong><span>업무분장 항목</span></div><div><strong>${data.schedules.length}</strong><span>시간·출근 안내</span></div><div><strong>${rainCount}</strong><span>18일 우천·출근 안내</span></div></div>
-    <details class="manager-confirmations"><summary>현장 확인 요청 ${confirmations.length}건</summary><ul>${confirmations.map(text => `<li>${escape(text)}</li>`).join('')}</ul></details>
-  </details>`;
-}
-
 function renderNow(clock) {
   const date = nextDate(clock);
   const mode = date.endsWith('17') ? 'normal' : state.mode;
@@ -78,7 +65,7 @@ function renderNow(clock) {
   let description = before ? `${dayLabel(data.meta.dates[0])} 행사까지 D-${daysUntilStart(clock)}입니다. 업무분장과 출퇴근 안내를 미리 확인하세요.` : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · 세부분장 업무와 다음 상세일정을 표시합니다.`;
   return `${modeControl(date)}${mode === 'rain' ? '<div class="notice">☂ <strong>우천 일정 보기 중</strong> · 우천 시트의 대체 장소와 업무만 표시합니다. 우천 전환 여부는 현장 공지를 확인하세요. 이 선택은 다른 직원의 화면에 적용되지 않습니다.</div>' : ''}
     <section class="now-summary"><div class="eyebrow"><span class="live-dot"></span>${state.preview ? '시간 미리보기' : '현재 시각 기준'}</div><h2>${heading}</h2><p>${description}</p></section>
-    ${managerSummary(clock)}${before ? quickLinks(true) : ''}
+    ${before ? quickLinks(true) : ''}
     ${during && minutes(clock.time) < 600 ? `<div style="margin-top:20px">${prepBlock(clock.date.slice(-2))}</div>` : ''}
     ${during && duties.length ? `${title('현재 업무분장', duties.length, '세부분장 기준 · 현재 근무 시간')}<div class="grid">${duties.map(e => dutyCard(e,clock,true)).join('')}</div>` : ''}
     ${during && live.length ? `${title('현재 상세일정', live.length, '진행 중 · 시작 알림')}<div class="grid">${live.map(e => eventCard(e,clock)).join('')}</div>` : ''}
