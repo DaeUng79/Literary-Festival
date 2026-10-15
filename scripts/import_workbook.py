@@ -152,6 +152,8 @@ payload = {'meta': {'title': '양산시 독서문화축전', 'dates': ['2026-10-
         'assignmentNotes': ['오전/오후 업무가 다릅니다. 직원 2인 이상 배치된 곳은 상황을 보고 다른 행사를 지원해주세요.',
             '분장별 상세 업무는 토요일 오전 별도로 설명 예정입니다. 세부내용을 꼭 읽어주세요.'],
         'attendance': '구분없이 초과사전 올려주시고, 양일간 인사랑에 출퇴근 확인해주세요.(근무자 제외)',
-        'unconfirmed': '퇴근 시각, 직원 주차 위치, 셔틀·차량 이용 방법, 차출경비·대체휴무 세부 기준은 제공된 안내에 없습니다. 현장 총괄에게 확인해주세요.'}}
+        'unconfirmed': '퇴근 시각, 직원 주차 위치, 셔틀·차량 이용 방법, 차출경비·대체휴무 세부 기준은 제공된 안내에 없습니다. 현장 총괄에게 확인해주세요.',
+        'mealPlace': {'name': '용마루숯불가든 양산본점', 'location': '물금역 앞',
+            'url': 'https://place.map.kakao.com/155775398'}}}
 (ROOT / 'dist' / 'data.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n')
 print(f'Imported {len(assignments)} duty cards and {len(schedules)} schedule rows from {len(names)} sheets.')

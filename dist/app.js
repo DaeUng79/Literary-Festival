@@ -133,7 +133,8 @@ function renderGuide(clock) {
 }
 
 function renderCommute() {
-  return `<section class="intro"><h2 style="margin-top:10px">출근부터 퇴근 확인까지</h2><p>10월 17일(토) · 18일(일) / 출근 장소: 중앙도서관</p></section><div class="commute-grid">${prepBlock('양일')}<div><article class="card"><div class="category">초과근무 · 차출경비 · 대체휴무 관련</div><h3>초과사전 및 인사랑 확인</h3><p class="body-copy">${escape(data.commute.attendance)}</p><p class="source">${escape(data.commute.source)}</p></article><article class="card"><h3>업무분장, 세부내용 필독</h3>${data.commute.assignmentNotes.map(t=>`<p class="callout">${escape(t)}</p>`).join('')}</article></div></div><div class="notice" style="margin-top:20px"><strong>추가 확인사항</strong><br>${escape(data.commute.unconfirmed)}</div>`;
+  const mealPlace = data.commute.mealPlace;
+  return `<section class="intro"><h2 style="margin-top:10px">출근부터 퇴근 확인까지</h2><p>10월 17일(토) · 18일(일) / 출근 장소: 중앙도서관</p></section><div class="commute-grid">${prepBlock('양일')}<div><article class="card"><div class="category">초과근무 · 차출경비 · 대체휴무 관련</div><h3>초과사전 및 인사랑 확인</h3><p class="body-copy">${escape(data.commute.attendance)}</p><p class="source">${escape(data.commute.source)}</p></article><article class="card"><h3>업무분장, 세부내용 필독</h3>${data.commute.assignmentNotes.map(t=>`<p class="callout">${escape(t)}</p>`).join('')}</article></div></div><div class="notice" style="margin-top:20px"><strong>추가 확인사항</strong><br>${escape(data.commute.unconfirmed)}</div><div class="notice" style="margin-top:12px"><strong>회식 장소</strong><br><a href="${escape(mealPlace.url)}" target="_blank" rel="noopener noreferrer">${escape(mealPlace.name)}</a> (${escape(mealPlace.location)})</div>`;
 }
 
 function renderClock() {
