@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { seoulNow, status, activeShifts, selectSchedule, matches, minutes } from '../dist/core.js';
+import { seoulNow, status, activeShifts, currentSchedule, selectSchedule, matches, minutes } from '../dist/core.js';
 const data = JSON.parse(fs.readFileSync(new URL('../dist/data.json',import.meta.url)));
 const at = (time,date='2026-10-18')=>({date,time});
 
@@ -23,6 +23,23 @@ test('종료 없는 업무는 15분 알림 후 시작 시각 지남으로 처리
   assert.equal(status(event,at('12:50')),'starting');
   assert.equal(status(event,at('13:04')),'starting');
   assert.equal(status(event,at('13:05')),'started');
+});
+test('현재 상세일정은 다음 시작 시각 전까지 유지하며 같은 시각 일정은 함께 표시',()=>{
+  const events=[
+    {id:'first',date:'2026-10-18',start:'10:00',end:'10:15'},
+    {id:'next-a',date:'2026-10-18',start:'11:00'},
+    {id:'next-b',date:'2026-10-18',start:'11:00'},
+  ];
+  assert.deepEqual(currentSchedule(events,at('09:59')),[]);
+  assert.deepEqual(currentSchedule(events,at('10:00')).map(e=>e.id),['first']);
+  assert.deepEqual(currentSchedule(events,at('10:59')).map(e=>e.id),['first']);
+  assert.deepEqual(currentSchedule(events,at('11:00')).map(e=>e.id),['next-a','next-b']);
+});
+test('실제 17일 10시 상세일정은 다음 11시 일정 시작까지 유지',()=>{
+  const events=selectSchedule(data,'2026-10-17','normal');
+  assert.deepEqual(currentSchedule(events,at('10:01','2026-10-17')).map(e=>e.id),['event-17-4']);
+  assert.deepEqual(currentSchedule(events,at('10:59','2026-10-17')).map(e=>e.id),['event-17-4']);
+  assert.ok(currentSchedule(events,at('11:00','2026-10-17')).every(e=>e.start==='11:00'));
 });
 test('13~14시 두 근무조를 유지하며 14시 이후 오전조 제외',()=>{
   const item=data.assignments.find(x=>x.id==='duty-18-12');

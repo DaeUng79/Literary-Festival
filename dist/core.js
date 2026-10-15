@@ -19,6 +19,16 @@ export function activeShifts(item, now) {
   const current = minutes(now.time);
   return item.shifts.filter(s => current >= minutes(s.start) && current < minutes(s.end));
 }
+export function currentSchedule(events, now) {
+  if (!now?.date || !now?.time) return [];
+  const current = minutes(now.time);
+  const starts = events
+    .filter(event => event.date === now.date && event.start && minutes(event.start) <= current)
+    .map(event => minutes(event.start));
+  if (!starts.length) return [];
+  const latest = Math.max(...starts);
+  return events.filter(event => event.date === now.date && event.start && minutes(event.start) === latest);
+}
 export function matches(item, query) {
   const aliases = { '서윤영': ['윤영'], '신현정': ['신쩡'], '지성훈': ['성훈'], '김여정': ['여정'], '김현지': ['현지'], '류아영': ['아영'] };
   const normalize = text => text.normalize('NFC').replace(/\s/g, '').toLowerCase();
