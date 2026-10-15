@@ -34,6 +34,12 @@ test('13~14시 두 근무조를 유지하며 14시 이후 오전조 제외',()=>
   assert.equal(activeShifts(item,at('17:00')).length,0);
   assert.equal(activeShifts(item,at('13:00','2026-10-17')).length,0);
 });
+test('17일 10:01 현장 업무를 세부분장에서 표시할 수 있음',()=>{
+  const clock=at('10:01','2026-10-17');
+  const active=data.assignments.filter(item=>item.date===clock.date&&activeShifts(item,clock).length>0);
+  assert.ok(active.length>0);
+  assert.ok(active.some(item=>item.category==='강연 및 공연'));
+});
 test('일반/우천 일정 분리, 우천 이동 장소 보존',()=>{
   const rain=selectSchedule(data,'2026-10-18','rain');
   assert.ok(rain.every(e=>e.mode==='rain'));

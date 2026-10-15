@@ -71,19 +71,19 @@ function renderNow(clock) {
   const upcoming = events.filter(e => e.date > clock.date || e.date === clock.date && minutes(e.start) > minutes(clock.time));
   const soon = upcoming.filter(e => e.date === clock.date && minutes(e.start) - minutes(clock.time) <= 30);
   const displayNext = soon.length ? soon : upcoming.slice(0, 3);
-  // Show general booth/shift assignments separately from event timings.
-  const duties = data.assignments.filter(a => a.date === date && a.mode === mode && a.category !== '강연 및 공연' && activeShifts(a, clock).length && matches({...a, shifts:activeShifts(a, clock)}, state.query));
+  const duties = data.assignments.filter(a => a.date === date && a.mode === mode && activeShifts(a, clock).length && matches({...a, shifts:activeShifts(a, clock)}, state.query));
   const during = data.meta.dates.includes(clock.date);
   const before = clock.date < data.meta.dates[0];
-  let heading = before ? '축제를 준비하고 있어요' : !during ? '양일 일정이 마무리되었습니다' : live.length ? `지금 확인할 업무 ${live.length}건` : '현재 시간의 업무를 확인하세요';
-  let description = before ? `${dayLabel(data.meta.dates[0])} 행사까지 D-${daysUntilStart(clock)}입니다. 업무분장과 출퇴근 안내를 미리 확인하세요.` : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · ${mode === 'rain' ? '우천 일정' : '일반 일정'} · 시간에 맞춰 자동으로 바뀝니다.`;
+  let heading = before ? '축제를 준비하고 있어요' : !during ? '양일 일정이 마무리되었습니다' : duties.length ? `현재 업무분장 ${duties.length}건` : live.length ? `지금 확인할 상세일정 ${live.length}건` : '다음 일정을 확인하세요';
+  let description = before ? `${dayLabel(data.meta.dates[0])} 행사까지 D-${daysUntilStart(clock)}입니다. 업무분장과 출퇴근 안내를 미리 확인하세요.` : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · 세부분장 업무와 다음 상세일정을 표시합니다.`;
   return `${modeControl(date)}${mode === 'rain' ? '<div class="notice">☂ <strong>우천 일정 보기 중</strong> · 우천 시트의 대체 장소와 업무만 표시합니다. 우천 전환 여부는 현장 공지를 확인하세요. 이 선택은 다른 직원의 화면에 적용되지 않습니다.</div>' : ''}
     <section class="now-summary"><div class="eyebrow"><span class="live-dot"></span>${state.preview ? '시간 미리보기' : '현재 시각 기준'}</div><h2>${heading}</h2><p>${description}</p></section>
     ${managerSummary(clock)}${before ? quickLinks(true) : ''}
     ${during && minutes(clock.time) < 600 ? `<div style="margin-top:20px">${prepBlock(clock.date.slice(-2))}</div>` : ''}
-    ${during ? `${title('지금 업무', live.length, '진행 중 · 시작 알림')}<div class="grid">${live.length ? live.map(e => eventCard(e, clock)).join('') : empty(state.query ? '검색에 맞는 현재 업무가 없습니다' : '현재 진행 중인 상세일정이 없습니다', state.query ? '이름 또는 업무명을 다시 확인해주세요.' : '다음 일정과 교대 업무를 확인해주세요.')}</div>` : ''}
+    ${during && duties.length ? `${title('현재 업무분장', duties.length, '세부분장 기준 · 현재 근무 시간')}<div class="grid">${duties.map(e => dutyCard(e,clock,true)).join('')}</div>` : ''}
+    ${during && live.length ? `${title('현재 상세일정', live.length, '진행 중 · 시작 알림')}<div class="grid">${live.map(e => eventCard(e,clock)).join('')}</div>` : ''}
+    ${during && !duties.length && !live.length ? `${title('현재 업무', 0, '다음 상세일정까지')}<div class="grid">${empty(state.query ? '검색한 업무가 현재 시간에 없습니다' : '현재 시간에 배정된 업무가 없습니다', displayNext.length ? `다음 일정은 ${displayNext[0].start} · ${displayNext[0].title}` : '날짜별 안내에서 오늘 일정을 확인하세요.')}</div>` : ''}
     ${displayNext.length ? `${title(before ? '행사 첫 일정' : soon.length ? '곧 시작해요' : '다음 일정', displayNext.length, dayLabel(date))}<div class="grid">${displayNext.map(e => eventCard(e, clock)).join('')}</div>` : ''}
-    ${during ? `${title('현재 교대 업무', duties.length, '13–14시는 오전·오후 함께 표시')}<div class="grid">${duties.length ? duties.map(e => dutyCard(e, clock, true)).join('') : empty('현재 표시할 교대 업무가 없습니다', '근무분장 시간은 오전 10–14시, 오후 13–17시입니다.')}</div>` : ''}
     ${before ? '' : quickLinks()}`;
 }
 
