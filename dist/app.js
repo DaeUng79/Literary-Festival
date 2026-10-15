@@ -19,10 +19,19 @@ const location = text => text ? `<div class="location">↳ ${escape(text)}</div>
 
 function previewControls(clock) {
   const selectedDate = state.preview?.date || clock.date;
-  const selectedTime = state.preview?.time || clock.time;
+  const selectedHour = Number((state.preview?.time || clock.time).slice(0,2));
+  const hours = [
+    ...data.schedules.flatMap(item => [item.start,item.end]),
+    ...data.assignments.flatMap(item => item.shifts.flatMap(shift => [shift.start,shift.end])),
+  ].filter(Boolean).map(time => Number(time.slice(0,2)));
+  const firstHour = Math.min(...hours), lastHour = Math.max(...hours);
+  const hourOptions = Array.from({length:lastHour-firstHour+1},(_,index)=>{
+    const hour=firstHour+index, value=`${String(hour).padStart(2,'0')}:00`;
+    return `<option value="${value}" ${hour===selectedHour?'selected':''}>${String(hour).padStart(2,'0')}시</option>`;
+  }).join('');
   return `<section class="preview-controls preview-tab-controls" aria-label="시간 미리보기 설정">
       <label>날짜<select id="preview-day">${data.meta.dates.map(date => `<option value="${date}" ${date === selectedDate ? 'selected' : ''}>${dayLabel(date)}</option>`).join('')}</select></label>
-      <label>시각<input id="preview-time" type="time" value="${selectedTime}" required></label>
+      <label>시각<select id="preview-time" required>${hourOptions}</select></label>
       <button id="preview-apply" class="primary">미리보기 적용</button>
     </section>`;
 }
@@ -97,8 +106,8 @@ function renderNow(clock, isPreview = false) {
 }
 
 function renderPreview(realClock) {
-  const clock = state.preview ? {...state.preview,second:'00'} : {date:nextDate(realClock),time:'13:20',second:'00'};
-  return `<section class="intro"><div class="eyebrow">운영 흐름 미리보기</div><h2 style="margin-top:10px">시간 미리보기</h2><p>날짜와 시간을 선택해 일정과 업무분장을 확인하세요. 실제 현재 업무 화면에는 영향을 주지 않습니다.</p></section>${previewControls(clock)}${renderNow(clock,true)}`;
+  const clock = state.preview ? {...state.preview,second:'00'} : {date:nextDate(realClock),time:'13:00',second:'00'};
+  return `<section class="intro"><h2 style="margin-top:10px">시간 미리보기</h2><p>날짜와 시간을 선택해 일정과 업무분장을 확인하세요. 실제 현재 업무 화면에는 영향을 주지 않습니다.</p></section>${previewControls(clock)}${renderNow(clock,true)}`;
 }
 
 function renderGuide(clock) {
@@ -122,7 +131,7 @@ function renderGuide(clock) {
 }
 
 function renderCommute() {
-  return `<section class="intro"><div class="eyebrow">양일 공통 안내</div><h2 style="margin-top:10px">출근부터 퇴근 확인까지</h2><p>10월 17일(토) · 18일(일) / 출근 장소: 중앙도서관</p></section><div class="commute-grid">${prepBlock('양일')}<div><article class="card"><div class="category">초과근무 · 차출경비 · 대체휴무 관련</div><h3>초과사전 및 인사랑 확인</h3><p class="body-copy">${escape(data.commute.attendance)}</p><p class="source">${escape(data.commute.source)}</p></article><article class="card"><h3>업무분장, 세부내용 필독</h3>${data.commute.assignmentNotes.map(t=>`<p class="callout">${escape(t)}</p>`).join('')}</article></div></div><div class="notice" style="margin-top:20px"><strong>추가 확인사항</strong><br>${escape(data.commute.unconfirmed)}</div>`;
+  return `<section class="intro"><h2 style="margin-top:10px">출근부터 퇴근 확인까지</h2><p>10월 17일(토) · 18일(일) / 출근 장소: 중앙도서관</p></section><div class="commute-grid">${prepBlock('양일')}<div><article class="card"><div class="category">초과근무 · 차출경비 · 대체휴무 관련</div><h3>초과사전 및 인사랑 확인</h3><p class="body-copy">${escape(data.commute.attendance)}</p><p class="source">${escape(data.commute.source)}</p></article><article class="card"><h3>업무분장, 세부내용 필독</h3>${data.commute.assignmentNotes.map(t=>`<p class="callout">${escape(t)}</p>`).join('')}</article></div></div><div class="notice" style="margin-top:20px"><strong>추가 확인사항</strong><br>${escape(data.commute.unconfirmed)}</div>`;
 }
 
 function renderClock() {
