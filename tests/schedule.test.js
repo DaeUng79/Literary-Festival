@@ -45,7 +45,10 @@ test('취소된 상세일정은 취소로 표시하되 현재 일정과 다음 �
   assert.deepEqual(currentSchedule(events,at('13:15')).map(e=>e.id),['previous']);
   const actual=data.schedules.find(e=>e.id==='event-18-20');
   assert.equal(actual.cancelled,true);
+  assert.equal(actual.title,'부시장님 행사장 라운딩 (당초 예정, 취소)');
+  assert.deepEqual([actual.start,actual.end],['13:10','13:20']);
   assert.equal(status(actual,at('13:10','2026-10-18')),'cancelled');
+  assert.equal(currentSchedule(selectSchedule(data,'2026-10-18','normal'),at('13:15','2026-10-18')).some(e=>e.id===actual.id),false);
 });
 test('실제 17일 10시 상세일정은 다음 11시 일정 시작까지 유지',()=>{
   const events=selectSchedule(data,'2026-10-17','normal');

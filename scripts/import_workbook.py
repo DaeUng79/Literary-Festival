@@ -103,10 +103,13 @@ for day in [17, 18]:
         if not raw.get((row, 2)):
             continue
         start, end = times(raw.get((row, 1), ''))
-        schedules.append({'id': f'event-{day}-{row}', 'date': f'2026-10-{day}', 'mode': 'normal',
+        event = {'id': f'event-{day}-{row}', 'date': f'2026-10-{day}', 'mode': 'normal',
             'start': start, 'end': end, 'originalTime': raw.get((row, 1), ''),
             'title': raw.get((row, 2), ''), 'staff': raw.get((row, 3), ''),
-            'notes': raw.get((row, 4), ''), 'location': '', 'source': source(name, [row])})
+            'notes': raw.get((row, 4), ''), 'location': '', 'source': source(name, [row])}
+        if day == 18 and row == 20:
+            event.update(title='부시장님 행사장 라운딩 (당초 예정, 취소)', cancelled=True)
+        schedules.append(event)
 
 # Rain mode is built only from the rain sheet. Do not mix in outdoor instructions.
 rain_times = {6: ('11:00', None), 7: ('11:00', '11:30'), 8: ('11:30', '12:00'),
