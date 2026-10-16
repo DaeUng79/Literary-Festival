@@ -14,7 +14,7 @@ NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 def clean(value):
     value = str(value or '').strip()
     # Vehicle identifiers are unnecessary for a publicly hosted staff guide.
-    return re.sub(r'(?:벤츠\s*)?257무\s*2805', '[차량번호 비공개]', value)
+    return re.sub(r'(?:벤츠\s*)?\d{2,3}\s*[가-힣]\s*\d{4}', '[차량번호 비공개]', value)
 
 
 def coord(address):

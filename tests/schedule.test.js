@@ -35,6 +35,18 @@ test('현재 상세일정은 다음 시작 시각 전까지 유지하며 같은 
   assert.deepEqual(currentSchedule(events,at('10:59')).map(e=>e.id),['first']);
   assert.deepEqual(currentSchedule(events,at('11:00')).map(e=>e.id),['next-a','next-b']);
 });
+test('취소된 상세일정은 취소로 표시하되 현재 일정과 다음 일정에서 제외',()=>{
+  const events=[
+    {id:'previous',date:'2026-10-18',start:'12:00',end:'12:30'},
+    {id:'cancelled',date:'2026-10-18',start:'13:10',end:'13:20',cancelled:true},
+    {id:'next',date:'2026-10-18',start:'14:00'},
+  ];
+  assert.equal(status(events[1],at('13:10')),'cancelled');
+  assert.deepEqual(currentSchedule(events,at('13:15')).map(e=>e.id),['previous']);
+  const actual=data.schedules.find(e=>e.id==='event-18-20');
+  assert.equal(actual.cancelled,true);
+  assert.equal(status(actual,at('13:10','2026-10-18')),'cancelled');
+});
 test('실제 17일 10시 상세일정은 다음 11시 일정 시작까지 유지',()=>{
   const events=selectSchedule(data,'2026-10-17','normal');
   assert.deepEqual(currentSchedule(events,at('10:01','2026-10-17')).map(e=>e.id),['event-17-4']);
@@ -78,7 +90,7 @@ test('원본 변환 건수와 유효한 시각, 중복 ID, 차량번호 제거',
   const all=[...data.assignments,...data.schedules];
   assert.equal(new Set(all.map(e=>e.id)).size,all.length);
   for(const e of data.schedules){assert.match(e.start,/^(0\d|1\d|2[0-3]):[0-5]\d$/);if(e.end)assert.ok(minutes(e.end)>minutes(e.start));}
-  assert.ok(!JSON.stringify(data).includes('257무'));
+  assert.doesNotMatch(JSON.stringify(data),/(?:벤츠\s*)?\d{2,3}\s*[가-힣]\s*\d{4}/);
   assert.equal(data.schedules.find(e=>e.id==='event-17-24').start,'15:45');
 });
 test('병합 셀 담당자 및 우천 장소의 상속 보존',()=>{

@@ -8,7 +8,7 @@ const state = { view: 'now', guide: '17-prepare', mode: read('festival-weather')
 let data;
 let lastMinute = '';
 const guideItems = [['17-prepare','17일 업무분장'],['17-detail','17일 상세일정'],['18-prepare','18일 업무분장'],['18-detail','18일 상세일정'],['18-rain','18일 우천일정']];
-const labels = {active:'진행 중', starting:'시작 알림', soon:'30분 내 시작', upcoming:'예정', ended:'시간 종료', started:'시작 시각 지남', 'past-day':'지난 날짜', 'future-day':'예정', untimed:'시간 확인 필요'};
+const labels = {active:'진행 중', starting:'시작 알림', soon:'30분 내 시작', upcoming:'예정', cancelled:'취소', ended:'시간 종료', started:'시작 시각 지남', 'past-day':'지난 날짜', 'future-day':'예정', untimed:'시간 확인 필요'};
 const now = () => seoulNow();
 const dayLabel = date => date === '2026-10-17' ? '10월 17일 (토)' : '10월 18일 (일)';
 const nextDate = clock => data.meta.dates.find(d => d >= clock.date) || data.meta.dates.at(-1);
@@ -37,7 +37,7 @@ function previewControls(clock) {
 }
 
 function eventCard(item, clock, current = false) {
-  const phase = current ? 'active' : status(item, clock);
+  const phase = item.cancelled ? 'cancelled' : current ? 'active' : status(item, clock);
   return `<article class="card ${phase === 'active' ? 'live' : phase === 'starting' ? 'starting' : ''}">
     <div class="card-head"><span class="time">${escape(item.start)}${item.end ? ` — ${escape(item.end)}` : ' 시작'}</span><span class="badge ${phase}">${labels[phase]}</span></div>
     <div class="card-content">${location(item.location)}<h3>${escape(item.title)}</h3>
@@ -87,7 +87,7 @@ function renderNow(clock, isPreview = false) {
   const mode = date.endsWith('17') ? 'normal' : isPreview ? state.previewMode : state.mode;
   const events = selectSchedule(data, date, mode);
   const current = currentSchedule(events, clock);
-  const upcoming = events.filter(e => e.date > clock.date || e.date === clock.date && minutes(e.start) > minutes(clock.time));
+  const upcoming = events.filter(e => !e.cancelled && (e.date > clock.date || e.date === clock.date && minutes(e.start) > minutes(clock.time)));
   const soon = upcoming.filter(e => e.date === clock.date && minutes(e.start) - minutes(clock.time) <= 30);
   const displayNext = soon.length ? soon : upcoming.slice(0, 3);
   const duties = data.assignments.filter(a => a.date === date && a.mode === mode && activeShifts(a, clock).length);
@@ -204,6 +204,7 @@ async function loadData() {
     const fresh=await response.json();
     if(!fresh.meta?.dates || !Array.isArray(fresh.assignments) || !Array.isArray(fresh.schedules) || !fresh.commute)throw new Error('일정 형식 오류');
     data=fresh;
+    $('#updated-at').textContent=data.meta.updatedAt.replace(/-/g,'.');
     $('#source-notes').innerHTML=`<p>자료: ${escape(data.meta.sourceFile)} 및 담당자 제공 출퇴근 안내.</p><p>${escape(data.meta.dateNote)}</p><ul>${data.meta.notices.map(t=>`<li>${escape(t)}</li>`).join('')}</ul><p>화면의 시각은 기기의 시계를 한국 시간으로 변환합니다. 자동 날짜·시간 설정을 사용해주세요. 우천 선택은 이 브라우저에만 저장됩니다. 일정 변경은 자료 새로고침으로 반영합니다.</p>`;
     render();connectivity();
     $('#reload').textContent='최신 자료 확인 완료';
