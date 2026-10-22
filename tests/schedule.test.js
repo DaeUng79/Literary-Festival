@@ -97,10 +97,17 @@ test('원본 변환 건수와 유효한 시각, 중복 ID, 차량번호 제거',
   assert.equal(data.schedules.find(e=>e.id==='event-17-24').start,'15:45');
 });
 test('병합 셀 담당자 및 우천 장소의 상속 보존',()=>{
-  assert.equal(data.assignments.find(e=>e.id==='duty-17-3').shifts[0].staff,'양현정, 이채령');
+  assert.equal(data.assignments.find(e=>e.id==='duty-17-3').shifts[0].staff,'양O정, 이O령');
   assert.ok(data.assignments.find(e=>e.id==='duty-17-3').detail.includes('매시간 36명'));
   assert.equal(data.assignments.find(e=>e.id==='rain-18-25').location,'2층 복도');
-  assert.equal(data.schedules.find(e=>e.id==='rain-event-8').staff,'장희진, 김정해');
+  assert.equal(data.schedules.find(e=>e.id==='rain-event-8').staff,'장O진, 김O해');
+});
+test('공개 데이터의 사람 이름은 동일한 가림 표기로 변환',()=>{
+  const card=data.assignments.find(e=>e.id==='duty-17-21');
+  assert.match(card.notes,/최O준/);
+  assert.ok(data.schedules.some(e=>e.title.includes('옥O진')));
+  assert.ok(data.schedules.some(e=>e.title.includes('최O성')));
+  assert.ok(data.schedules.filter(e=>e.staff.includes('O')).length>10);
 });
 test('주신 출퇴근 정보와 양일 출근 알림 포함',()=>{
   assert.deepEqual(data.commute.arrivals.map(x=>x.time),['07:00','08:00']);

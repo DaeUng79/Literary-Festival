@@ -2,12 +2,15 @@
 import json
 import re
 import sys
+import unicodedata
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = Path(sys.argv[1]) if len(sys.argv) > 1 else next(ROOT.parent.glob('*.xlsx'))
+SOURCE = Path(sys.argv[1]) if len(sys.argv) > 1 else next(
+    path for path in ROOT.parent.glob('*.xlsx')
+    if '근무분장' in unicodedata.normalize('NFC', path.name))
 NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 
 
@@ -125,10 +128,10 @@ for item in [a for a in assignments if a['mode'] == 'rain']:
         'title': item['title'], 'staff': item['shifts'][0]['staff'], 'notes': item['notes'],
         'location': item['location'], 'source': item['source']})
 for start, title, row in [('09:00', '시상식 리허설(직원)', 15), ('12:20', '시상식 리허설(책 읽는 가족)', 15),
-                           ('18:30', '최태성 작가님 물금역 출발 확인', 12)]:
+                           ('18:30', '작가님 물금역 출발 확인', 12)]:
     schedules.append({'id': f'rain-extra-{start}', 'date': '2026-10-18', 'mode': 'rain',
         'start': start, 'end': None, 'originalTime': start + ' ~', 'title': title,
-        'staff': '이영주' if row == 12 else '', 'notes': '', 'location': '물금역' if row == 12 else '',
+        'staff': sheets['18일(우천시)'][0].get((12, 4), '') if row == 12 else '', 'notes': '', 'location': '물금역' if row == 12 else '',
         'source': source('18일(우천시)', [row])})
 
 for day, mode in [(17, 'normal'), (18, 'normal'), (18, 'rain')]:
@@ -158,5 +161,48 @@ payload = {'meta': {'title': '양산시 독서문화축전', 'dates': ['2026-10-
         'unconfirmed': '퇴근 시각, 직원 주차 위치, 셔틀·차량 이용 방법, 차출경비·대체휴무 세부 기준은 제공된 안내에 없습니다. 현장 총괄에게 확인해주세요.',
         'mealPlace': {'name': '용마루숯불가든 양산본점', 'location': '물금역 앞',
             'url': 'https://place.map.kakao.com/155775398'}}}
+# Derive names from assignment fields at import time. The public repository never
+# needs a checked-in table that maps pseudonyms back to real people.
+family_names = set('김이박최정조윤유류신여양안서송문장지심변전채강오방옥')
+staff_text = [item['staff'] for item in schedules]
+staff_text += [shift['staff'] for item in assignments for shift in item['shifts']]
+people = {token for text in staff_text for token in re.findall(r'[가-힣]{3,4}', text)
+          if len(token) == 3 and token[0] in family_names}
+for raw, _ in sheets.values():
+    for text in raw.values():
+        people.update(re.findall(r'([가-힣]{3})\s*(?:작가|쌤)', text))
+aliases = {}
+for person in people:
+    aliases.setdefault(person[1:], set()).add(person)
+aliases = {alias: next(iter(owners)) for alias, owners in aliases.items() if len(owners) == 1}
+pseudonyms = {}
+for person in sorted(people):
+    base = person[0] + 'O' + person[-1]
+    peers = sorted(other for other in people if other[0] == person[0] and other[-1] == person[-1])
+    pseudonyms[person] = base if len(peers) == 1 else f'{base}({peers.index(person) + 1})'
+
+
+def public_text(text):
+    for person in sorted(people):
+        text = text.replace(person, pseudonyms[person])
+    for alias, person in aliases.items():
+        text = re.sub(r'(?<![가-힣])' + re.escape(alias) + r'(?![가-힣])',
+                      pseudonyms[person], text)
+    # One colloquial two-syllable nickname in the workbook is not a real name.
+    text = text.replace('신쩡', '신O정(확인)')
+    return text
+
+
+def redact(value):
+    if isinstance(value, str):
+        return public_text(value)
+    if isinstance(value, list):
+        return [redact(item) for item in value]
+    if isinstance(value, dict):
+        return {key: redact(item) for key, item in value.items()}
+    return value
+
+
+payload = redact(payload)
 (ROOT / 'dist' / 'data.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n')
 print(f'Imported {len(assignments)} duty cards and {len(schedules)} schedule rows from {len(names)} sheets.')
