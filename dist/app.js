@@ -29,7 +29,7 @@ function previewControls(clock) {
     const hour=firstHour+index, value=`${String(hour).padStart(2,'0')}:00`;
     return `<option value="${value}" ${hour===selectedHour?'selected':''}>${String(hour).padStart(2,'0')}시</option>`;
   }).join('');
-  return `<section class="preview-controls preview-tab-controls" aria-label="시간 미리보기 설정">
+  return `<section class="preview-controls preview-tab-controls" aria-label="업무 미리보기 설정">
       <label>날짜<select id="preview-day">${data.meta.dates.map(date => `<option value="${date}" ${date === selectedDate ? 'selected' : ''}>${dayLabel(date)}</option>`).join('')}</select></label>
       <label>시각<select id="preview-time" required style="width:72%">${hourOptions}</select></label>
       <button id="preview-apply" class="primary">미리보기 적용</button>
@@ -97,7 +97,7 @@ function renderNow(clock, isPreview = false) {
   let heading = before ? '축제를 준비하고 있어요' : !during ? '양일 일정이 마무리되었습니다' : currentEvents.length ? `현재 상세일정 ${currentEvents.length}건` : duties.length ? `현재 업무분장 ${duties.length}건` : '다음 일정을 확인하세요';
   let description = isPreview ? `${dayLabel(clock.date)} ${clock.time} 기준으로 표시합니다. 실제 현재 업무 화면에는 영향을 주지 않습니다.` : before ? `${dayLabel(data.meta.dates[0])} 첫 일정부터 시간순으로 안내합니다.` : !during ? '지난 업무와 세부 안내는 날짜별 안내에서 확인할 수 있습니다.' : `${dayLabel(clock.date)} ${clock.time} 기준 · 현재 상세일정과 근무 중인 세부분장을 표시합니다.`;
   return `${modeControl(date, mode)}${mode === 'rain' ? '<div class="notice">☂ <strong>우천 일정 보기 중</strong> · 우천 시트의 대체 장소와 업무만 표시합니다. 우천 전환 여부는 현장 공지를 확인하세요. 이 선택은 다른 직원의 화면에 적용되지 않습니다.</div>' : ''}
-    <section class="now-summary"><div class="eyebrow"><span class="live-dot"></span>${isPreview ? '미리보기 시각 기준' : '현재 시각 기준'}</div><h2>${heading}</h2><p>${description}</p></section>
+    <section class="now-summary"><div class="eyebrow"><span class="live-dot"></span>${isPreview ? '업무 미리보기 기준' : '현재 시각 기준'}</div><h2>${heading}</h2><p>${description}</p></section>
     ${during && currentEvents.length ? `${title('현재 상세일정', currentEvents.length)}<div class="grid">${currentEvents.map(e => eventCard(e,clock,true)).join('')}</div>` : ''}
     ${displayNext.length ? `${title(before ? '시간대별 일정' : '다음 일정', displayNext.length, dayLabel(date))}<div class="grid">${displayNext.map(e => eventCard(e, clock)).join('')}</div>` : ''}
     ${before ? quickLinks(true) : ''}
@@ -109,7 +109,7 @@ function renderNow(clock, isPreview = false) {
 
 function renderPreview(realClock) {
   const clock = state.preview ? {...state.preview,second:'00'} : {date:nextDate(realClock),time:'13:00',second:'00'};
-  return `<section class="intro"><h2 style="margin-top:10px">시간 미리보기</h2><p>날짜와 시간을 선택해 일정과 업무분장을 확인하세요. 실제 현재 업무 화면에는 영향을 주지 않습니다.</p></section>${previewControls(clock)}${renderNow(clock,true)}`;
+  return `<section class="intro"><h2 style="margin-top:10px">업무 미리보기</h2><p>날짜와 시간을 선택해 일정과 업무분장을 확인하세요. 실제 현재 업무 화면에는 영향을 주지 않습니다.</p></section>${previewControls(clock)}${renderNow(clock,true)}`;
 }
 
 function renderGuide(clock) {
@@ -149,7 +149,7 @@ function render() {
   if (!data) return;
   const clock = renderClock();
   lastMinute = `${clock.date} ${clock.time}`;
-  $('#page-title').textContent = state.view === 'now' ? '지금, 현장에서' : state.view === 'guide' ? '함께, 차근차근' : state.view === 'preview' ? '시간 미리보기' : '출근도, 준비도';
+  $('#page-title').textContent = state.view === 'now' ? '지금, 현장에서' : state.view === 'guide' ? '함께, 차근차근' : state.view === 'preview' ? '업무 미리보기' : '출근도, 준비도';
   document.querySelectorAll('.main-nav button').forEach(button => {
     button.classList.toggle('selected', button.dataset.view === state.view);
     if (button.dataset.view === state.view) button.setAttribute('aria-current','page'); else button.removeAttribute('aria-current');
