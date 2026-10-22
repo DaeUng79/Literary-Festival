@@ -4,7 +4,7 @@ const $ = selector => document.querySelector(selector);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const read = key => { try { return localStorage.getItem(key); } catch { return null; } };
 const save = (key, value) => { try { localStorage.setItem(key, value); } catch { /* A private browser can still use the guide. */ } };
-const state = { view: 'now', guide: '17-prepare', mode: read('festival-weather') === 'rain' ? 'rain' : 'normal', previewMode: 'normal', preview: null };
+const state = { view: 'preview', guide: '17-prepare', mode: read('festival-weather') === 'rain' ? 'rain' : 'normal', previewMode: 'normal', preview: null };
 let data;
 let lastMinute = '';
 const guideItems = [['17-prepare','17일 업무분장'],['17-detail','17일 상세일정'],['18-prepare','18일 업무분장'],['18-detail','18일 상세일정'],['18-rain','18일 우천일정']];
